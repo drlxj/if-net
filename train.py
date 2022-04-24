@@ -76,53 +76,56 @@ if __name__ == '__main__':
         args = parser.parse_known_args()[0]
 
 
-    if args.model ==  'ShapeNet32Vox':
-        net = model.ShapeNet32Vox()
+    # if args.model ==  'ShapeNet32Vox':
+    #     net = model.ShapeNet32Vox()
 
-    if args.model ==  'ShapeNet128Vox':
-        net = model.ShapeNet128Vox()
+    # if args.model ==  'ShapeNet128Vox':
+    #     net = model.ShapeNet128Vox()
 
-    if args.model == 'ShapeNetPoints':
-        net = model.ShapeNetPoints()
+    # if args.model == 'ShapeNetPoints':
+    #     net = model.ShapeNetPoints()
 
-    if args.model == 'SVR':
-        net = model.SVR()
+    # if args.model == 'SVR':
+    #     net = model.SVR()
 
 
 
     
-    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
-                                        ''.join(str(e)+'_' for e in args.sample_distribution),
-                                        ''.join(str(e) +'_'for e in args.sample_sigmas),
-                                                                    args.res,args.model)
+    # exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
+    #                                     ''.join(str(e)+'_' for e in args.sample_distribution),
+    #                                     ''.join(str(e) +'_'for e in args.sample_sigmas),
+    #                                                                 args.res,args.model)
 
-    # trainer = training.Trainer(net,torch.device("cuda"),train_dataset, val_dataset,exp_name, optimizer=args.optimizer)
-    # trainer.train_model(1500)
 
     n_gpus = torch.cuda.device_count()
     assert n_gpus >= 2, f"Requires at least 2 GPUs to run, but got {n_gpus}"
-    world_size = n_gpus-4
+    world_size = n_gpus
 
 
-    processes = []
+    # processes = []
 
-    random.seed(time.time())
-    split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
+    # random.seed(time.time())
+    # split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
     
-    train_index_left = []
-    val_index_left = []
+    # train_index_left = []
+    # val_index_left = []
 
-    train_index = list(range(len(np.load(split_file)['train'])))
-    val_index = list(range(len(np.load(split_file)['val'])))
+    # train_index = list(range(len(np.load(split_file)['train'])))
+    # val_index = list(range(len(np.load(split_file)['val'])))
 
-    train_length = len(train_index)
-    val_length = len(val_index)
+    # train_length = len(train_index)
+    # val_length = len(val_index)
 
-    train_partial_length = int(train_length/world_size)
-    val_partial_length = int(val_length/world_size)
+    # train_partial_length = int(train_length/world_size)
+    # val_partial_length = int(val_length/world_size)
 
-    random.shuffle(train_index)
-    random.shuffle(val_index)
+    # random.shuffle(train_index)
+    # random.shuffle(val_index)
+
+    net = None
+    exp_name = None
+    train_index = None
+    val_index = None
     mp.spawn(train_basic,
              args=(net, exp_name, world_size, args, train_index, val_index),
              nprocs=world_size,

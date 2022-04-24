@@ -18,7 +18,8 @@ def setup(rank, world_size):
 def cleanup():
     dist.destroy_process_group()
 
-def train_basic(rank, net, train_dataset, val_dataset, exp_name, optimizer, world_size):
+def train_basic(rank, net, dataset, exp_name, optimizer, world_size):
+    train_dataset, val_dataset = dataset
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
     net = net.to(rank)
@@ -93,7 +94,7 @@ if __name__ == '__main__':
         val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                             sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index_left)
         val_index_left = val_dataset.partition_index
-        p = mp.Process(target=train_basic, args=(net, train_dataset, val_dataset, exp_name, args.optimizer, world_size))
+        p = mp.Process(target=train_basic, args=(net, (train_dataset, val_dataset), exp_name, args.optimizer, world_size))
         p.start()
         processes.append(p)
 

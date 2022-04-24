@@ -36,7 +36,7 @@ class VoxelizedDataset(Dataset):
         self.partition_index = partition_index # indices left for other dataset to partition
         random.shuffle(self.partition_index)
         if world_size>1:
-            if not rank:
+            if not rank and not len(partition_index):
                 self.partition_index = list(range(len(self.split[mode])))
             self.partition_idx(len(self.split[mode]))
         self.res = res

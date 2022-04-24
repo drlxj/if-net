@@ -1,0 +1,41 @@
+Sender: LSF System <lsfadmin@eu-g3-026>
+Subject: Job 215599837: <./test.sh> in cluster <euler> Done
+
+Job <./test.sh> was submitted from host <eu-login-18> by user <pezeng> in cluster <euler> at Sun Apr 24 22:22:23 2022
+Job was executed on host(s) <eu-g3-026>, in queue <gpu.4h>, as user <pezeng> in cluster <euler> at Sun Apr 24 22:22:37 2022
+</cluster/home/pezeng> was used as the home directory.
+</cluster/home/pezeng/group/if-net> was used as the working directory.
+Started at Sun Apr 24 22:22:37 2022
+Terminated at Sun Apr 24 22:22:56 2022
+Results reported at Sun Apr 24 22:22:56 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+./test.sh
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   9.08 sec.
+    Max Memory :                                 6117 MB
+    Average Memory :                             325.00 MB
+    Total Requested Memory :                     30000.00 MB
+    Delta Memory :                               23883.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   18 sec.
+    Turnaround time :                            33 sec.
+
+The output (if any) follows:
+
+Running basic DDP example on rank 2.
+Rank 2 finished
+Running basic DDP example on rank 1.
+Rank 1 finished
+Running basic DDP example on rank 0.
+Rank 0 finished

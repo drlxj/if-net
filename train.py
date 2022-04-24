@@ -10,6 +10,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import numpy as np
 import random
 import time
+import cuda
 
 def setup(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
@@ -23,6 +24,7 @@ def cleanup():
 
 def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index, val_index):
     print(f"Running basic DDP on rank {rank}.")
+    print(os.environ['CUDA_VISIBLE_DEVICES'])
     setup(rank, world_size)
     net = net.to(rank)
     ddp_model = DDP(net, device_ids = [rank])
@@ -41,6 +43,7 @@ def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index, v
 
 if __name__ == '__main__':
     # python train.py -posed -dist 0.5 0.5 -std_dev 0.15 0.05 -res 32 -batch_size 40 -m
+    os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
     parser = argparse.ArgumentParser(
         description='Run Model'
     )
@@ -88,7 +91,7 @@ if __name__ == '__main__':
 
     n_gpus = torch.cuda.device_count()
     assert n_gpus >= 2, f"Requires at least 2 GPUs to run, but got {n_gpus}"
-    world_size = n_gpus
+    world_size = n_gpus-1
 
 
     processes = []
@@ -106,16 +109,20 @@ if __name__ == '__main__':
     train_length = len(train_index)
     val_length = len(val_index)
 
-    train_patial_length = int(train_length/world_size)
-    val_patial_length = int(val_length/world_size)
+    train_partial_length = int(train_length/world_size)
+    val_partial_length = int(val_length/world_size)
 
     random.shuffle(train_index)
     random.shuffle(val_index)
+    for i in range(4):
+        for j in range(i+1,4):
+            print(f"i,j: {cuda.cuda.cuDeviceCanAccessPeer(i,j)}")
     for rank in range(world_size):
         
-        p = mp.Process(target=train_basic, args=(net, exp_name, world_size, args, train_index[:train_patial_length], val_index[:val_patial_length]))
-        train_index = train_index[train_patial_length:]
-        val_index = val_index[val_patial_length]
+        #print(os.environ['CUDA_VISIBLE_DEVICES'])
+        p = mp.Process(target=train_basic, args=(net, exp_name, world_size, args, train_index[:train_partial_length], val_index[:val_partial_length]))
+        train_index = train_index[train_partial_length:]
+        val_index = val_index[val_partial_length:]
         p.start()
         processes.append(p)
 

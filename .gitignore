@@ -10,3 +10,5 @@ build/
 !.gitkeep
 /data_processing/libmesh
 /data_processing/libvoxelize
+*.tar
+lsf.*

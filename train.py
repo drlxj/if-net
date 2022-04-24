@@ -21,11 +21,11 @@ def setup(rank, world_size):
 def cleanup():
     dist.destroy_process_group()
 
-def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+def train_basic_backup(rank, net, exp_name, world_size, args, train_index_total, val_index_total):
     setup(rank, world_size)
     cleanup()
 
-def train_basic_origin(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+def train_basic(rank, net, exp_name, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
     train_length = len(train_index)
@@ -44,7 +44,7 @@ def train_basic_origin(rank, net, exp_name, optimizer, world_size, args, train_i
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                             sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
 
-    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
+    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
     trainer.train_model(1500)
 
     cleanup()
@@ -76,25 +76,25 @@ if __name__ == '__main__':
         args = parser.parse_known_args()[0]
 
 
-    # if args.model ==  'ShapeNet32Vox':
-    #     net = model.ShapeNet32Vox()
+    if args.model ==  'ShapeNet32Vox':
+        net = model.ShapeNet32Vox()
 
-    # if args.model ==  'ShapeNet128Vox':
-    #     net = model.ShapeNet128Vox()
+    if args.model ==  'ShapeNet128Vox':
+        net = model.ShapeNet128Vox()
 
-    # if args.model == 'ShapeNetPoints':
-    #     net = model.ShapeNetPoints()
+    if args.model == 'ShapeNetPoints':
+        net = model.ShapeNetPoints()
 
-    # if args.model == 'SVR':
-    #     net = model.SVR()
+    if args.model == 'SVR':
+        net = model.SVR()
 
 
 
     
-    # exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
-    #                                     ''.join(str(e)+'_' for e in args.sample_distribution),
-    #                                     ''.join(str(e) +'_'for e in args.sample_sigmas),
-    #                                                                 args.res,args.model)
+    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
+                                        ''.join(str(e)+'_' for e in args.sample_distribution),
+                                        ''.join(str(e) +'_'for e in args.sample_sigmas),
+                                                                    args.res,args.model)
 
 
     n_gpus = torch.cuda.device_count()
@@ -102,25 +102,25 @@ if __name__ == '__main__':
     world_size = n_gpus
 
 
-    # processes = []
+    processes = []
 
-    # random.seed(time.time())
-    # split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
+    random.seed(time.time())
+    split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
     
-    # train_index_left = []
-    # val_index_left = []
+    train_index_left = []
+    val_index_left = []
 
-    # train_index = list(range(len(np.load(split_file)['train'])))
-    # val_index = list(range(len(np.load(split_file)['val'])))
+    train_index = list(range(len(np.load(split_file)['train'])))
+    val_index = list(range(len(np.load(split_file)['val'])))
 
-    # train_length = len(train_index)
-    # val_length = len(val_index)
+    train_length = len(train_index)
+    val_length = len(val_index)
 
-    # train_partial_length = int(train_length/world_size)
-    # val_partial_length = int(val_length/world_size)
+    train_partial_length = int(train_length/world_size)
+    val_partial_length = int(val_length/world_size)
 
-    # random.shuffle(train_index)
-    # random.shuffle(val_index)
+    random.shuffle(train_index)
+    random.shuffle(val_index)
 
     net = None
     exp_name = None

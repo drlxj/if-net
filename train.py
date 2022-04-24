@@ -28,24 +28,24 @@ def train_basic_backup(rank, net, exp_name, world_size, args, train_index_total,
 def train_basic(rank, net, exp_name, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
-    train_length = len(train_index_total)
-    val_length = len(val_index_total)
+    #train_length = len(train_index_total)
+    #val_length = len(val_index_total)
 
-    train_partial_length = int(train_length/world_size)
-    val_partial_length = int(val_length/world_size)
-    train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
-    val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
+    #train_partial_length = int(train_length/world_size)
+    #val_partial_length = int(val_length/world_size)
+    #train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
+    #val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     
-    net = net.to(rank)
-    ddp_model = DDP(net, device_ids = [rank])
+    #net = net.to(rank)
+    #ddp_model = DDP(net, device_ids = [rank])
 
-    train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = train_index)
-    val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
+    #train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
+    #                                        sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = train_index)
+    #val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
+    #                                        sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
 
-    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
-    trainer.train_model(1500)
+    #trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
+    #trainer.train_model(1500)
 
     cleanup()
 
@@ -107,25 +107,15 @@ if __name__ == '__main__':
     random.seed(time.time())
     split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
     
-    train_index_left = []
-    val_index_left = []
-
     train_index = list(range(len(np.load(split_file)['train'])))
     val_index = list(range(len(np.load(split_file)['val'])))
-
-    train_length = len(train_index)
-    val_length = len(val_index)
-
-    train_partial_length = int(train_length/world_size)
-    val_partial_length = int(val_length/world_size)
 
     random.shuffle(train_index)
     random.shuffle(val_index)
 
-    net = None
-    exp_name = None
-    train_index = None
-    val_index = None
+    #net = None
+    #args = None
+    
     mp.spawn(train_basic,
              args=(net, exp_name, world_size, args, train_index, val_index),
              nprocs=world_size,

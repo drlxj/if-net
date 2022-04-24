@@ -8,5 +8,6 @@ build/
 *.cpp
 /trash/
 !.gitkeep
-/data_processing/libmesh
-/data_processing/libvoxelize
+/data_processing/libmesh/*
+/data_processing/libvoxelize/*
+lsf.*

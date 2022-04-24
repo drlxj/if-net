@@ -9,7 +9,7 @@ import os
 import traceback
 
 #ROOT = 'shapenet/data'
-ROOT = '../SHARP_data/track1/test_partial'
+#ROOT = '../SHARP_data/track1/test_partial'
 
 
 def boundary_sampling(tmp_path):
@@ -25,7 +25,8 @@ def boundary_sampling(tmp_path):
         #     return
 
         mesh = trimesh.load(off_path) # trimesh.Trimesh
-        points = mesh.sample(sample_num) # Return random samples distributed across the surface of the mesh
+        points, faces = mesh.sample(sample_num, return_index = True) # Return random samples distributed across the surface of the mesh
+        normals = mesh.face_normals[faces]
 
         boundary_points = points + args.sigma * np.random.randn(sample_num, 3)
         grid_coords = boundary_points.copy()
@@ -40,7 +41,7 @@ def boundary_sampling(tmp_path):
         mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
         occupancies = iw.implicit_waterproofing(mesh_gt, boundary_points)[0]
 
-        np.savez(out_file, points=boundary_points, occupancies = occupancies, grid_coords= grid_coords)
+        np.savez(out_file, points=boundary_points, occupancies = occupancies, grid_coords= grid_coords, normals = normals)
         print('Finished {}'.format(path))
     except:
         print('Error with {}: {}'.format(path, traceback.format_exc()))
@@ -56,11 +57,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.data == "train":
-        ROOT = '../SHARP_data/track1/train_partial'
+        ROOT = '../../SHARP_data_convonet/track1/train_partial'
     elif args.data == "test":
-        ROOT = '../SHARP_data/track1/test_partial'
+        ROOT = '../../SHARP_data_convonet/track1/test_partial'
     elif args.data == "test-codalab-partial":
-        ROOT = '../SHARP_data/track1/test-codalab-partial'
+        ROOT = '../../SHARP_data_convonet/track1/test-codalab-partial'
 
 
     sample_num = 100000

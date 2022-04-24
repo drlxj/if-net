@@ -22,6 +22,8 @@ def cleanup():
     dist.destroy_process_group()
 
 def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+    print(f"Running basic DDP on rank {rank}.")
+    setup(rank, world_size)
     train_length = len(train_index)
     val_length = len(val_index)
 
@@ -29,9 +31,7 @@ def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_to
     val_partial_length = int(val_length/world_size)
     train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
     val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
-    print(f"Running basic DDP on rank {rank}.")
-    print(os.environ['CUDA_VISIBLE_DEVICES'])
-    setup(rank, world_size)
+    
     net = net.to(rank)
     ddp_model = DDP(net, device_ids = [rank])
 

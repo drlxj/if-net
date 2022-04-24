@@ -118,6 +118,7 @@ In the `experiments/` folder you can find an experiment folder containing the mo
 ```
 tensorboard --logdir experiments/YOUR_EXPERIMENT/summary/ --host 0.0.0.0
 ```
+if the website cannot be opened, delete `--host 0.0.0.0`
 ## Generation
 The command
 ```

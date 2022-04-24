@@ -40,8 +40,8 @@ def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_to
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                             sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
 
-    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
-    trainer.train_model(1500)
+    #trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
+    #trainer.train_model(1500)
 
     cleanup()
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     n_gpus = torch.cuda.device_count()
     assert n_gpus >= 2, f"Requires at least 2 GPUs to run, but got {n_gpus}"
-    world_size = n_gpus-1
+    world_size = n_gpus-4
 
 
     processes = []

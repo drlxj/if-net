@@ -28,8 +28,8 @@ def train_basic_backup(rank, net, exp_name, world_size, args, train_index_total,
 def train_basic(rank, net, exp_name, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
-    train_length = len(train_index)
-    val_length = len(val_index)
+    train_length = len(train_index_total)
+    val_length = len(val_index_total)
 
     train_partial_length = int(train_length/world_size)
     val_partial_length = int(val_length/world_size)

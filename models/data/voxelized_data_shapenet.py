@@ -6,15 +6,21 @@ import pickle
 import imp
 import trimesh
 import torch
-
+import torch.distributed as dist
+import torch.multiprocessing as mp
+import random
+import time
 
 
 class VoxelizedDataset(Dataset):
 
 
-    def __init__(self, mode, res = 32,  voxelized_pointcloud = False, pointcloud_samples = 3000, data_path = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/', split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz',
-                 batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], sample_sigmas = [0.015], **kwargs):
-
+    def __init__(self, mode, res = 32,  voxelized_pointcloud = False, pointcloud_samples = 3000, 
+                 data_path = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/', 
+                 split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz',
+                 batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], 
+                 sample_sigmas = [0.015], world_size = 0,rank = -1, partition_index = [], **kwargs):
+        
         self.sample_distribution = np.array(sample_distribution)
         self.sample_sigmas = np.array(sample_sigmas)
 
@@ -23,9 +29,16 @@ class VoxelizedDataset(Dataset):
         assert len(self.sample_distribution) == len(self.sample_sigmas)
 
         self.path = data_path
-        self.split = np.load(split_file)
-
-        self.data = self.split[mode]
+        self.rank = rank # the number of gpu
+        self.world_size = world_size # the number of data assigned to each gpu
+        self.split = np.load(split_file) # addresses of train, test, eval data set
+        self.data = self.split[mode] # mode = 'train', 'test', or 'eval'
+        self.partition_index = partition_index # indices left for other dataset to partition
+        random.shuffle(self.partition_index)
+        if world_size>1:
+            if not rank:
+                self.partition_index = list(range(len(self.split[mode])))
+            self.partition_idx(len(self.split[mode]))
         self.res = res
 
         self.num_sample_points = num_sample_points
@@ -37,23 +50,14 @@ class VoxelizedDataset(Dataset):
         # compute number of samples per sampling method
         self.num_samples = np.rint(self.sample_distribution * num_sample_points).astype(np.uint32)
 
-
-
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         path = self.path + self.data[idx]
-        # last = path.split(os.sep)[-1] # scan name
-        # second_last = path.split(os.sep)[-2] # determine if it is partial data
-        # substring = "partial"
-        # if substring in second_last:
-        #     path = path + last + ""
-        #     path = os.path.join(path, )
-
 
         if not self.voxelized_pointcloud:
-            occupancies = np.load(path[:-7] + '_voxelization_{}.npy'.format(self.res))
+            occupancies = np.load(path[:-7] + '_voxelization_{}.npy'.format(self.res)) # path[:-7] deletes "_scaled"
             occupancies = np.unpackbits(occupancies)
             input = np.reshape(occupancies, (self.res,)*3)
         else:
@@ -92,3 +96,28 @@ class VoxelizedDataset(Dataset):
         random_data = os.urandom(4)
         base_seed = int.from_bytes(random_data, byteorder="big")
         np.random.seed(base_seed + worker_id)
+
+    def partition_idx(self, data_len):
+        part_len = int(data_len / self.world_size)
+        self.data = self.data[self.partition_index[0:part_len]]
+        self.partition_index = self.partition_index[part_len:]
+        
+        
+        
+
+# class DataPartitioner(object):
+#     def __init__(self, dataset, world_size):
+#         self.dataset = dataset
+#         self.partitions = []
+#         random.seed(time.time())
+#         data_len = len(dataset)
+#         indexes = [x for x in range(0, data_len)]
+#         random.shuffle(indexes)
+
+#         for rank in range(world_size):
+#             part_len = int(data_len/ world_size)
+#             self.partitions.append(indexes[0:part_len])
+#             indexes = indexes[part_len:]
+
+#     def use(self, partition):
+#         return Partition(self.data, self.partitions[partition])

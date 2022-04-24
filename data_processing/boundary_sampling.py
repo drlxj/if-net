@@ -8,9 +8,6 @@ import argparse
 import os
 import traceback
 
-#ROOT = 'shapenet/data'
-ROOT = '../SHARP_data/track1/test_partial'
-
 
 def boundary_sampling(tmp_path):
     path, off_path, args, sample_num = tmp_path

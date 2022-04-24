@@ -10,7 +10,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import numpy as np
 import random
 import time
-import cuda
 
 def setup(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
@@ -22,7 +21,14 @@ def setup(rank, world_size):
 def cleanup():
     dist.destroy_process_group()
 
-def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index, val_index):
+def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+    train_length = len(train_index)
+    val_length = len(val_index)
+
+    train_partial_length = int(train_length/world_size)
+    val_partial_length = int(val_length/world_size)
+    train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
+    val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     print(f"Running basic DDP on rank {rank}.")
     print(os.environ['CUDA_VISIBLE_DEVICES'])
     setup(rank, world_size)
@@ -114,17 +120,18 @@ if __name__ == '__main__':
 
     random.shuffle(train_index)
     random.shuffle(val_index)
-    for i in range(4):
-        for j in range(i+1,4):
-            print(f"i,j: {cuda.cuda.cuDeviceCanAccessPeer(i,j)}")
-    for rank in range(world_size):
+    mp.spawn(train_basic,
+             args=(net, exp_name, world_size, args, train_index, val_index),
+             nprocs=world_size,
+             join=True)
+    # for rank in range(world_size):
         
-        #print(os.environ['CUDA_VISIBLE_DEVICES'])
-        p = mp.Process(target=train_basic, args=(net, exp_name, world_size, args, train_index[:train_partial_length], val_index[:val_partial_length]))
-        train_index = train_index[train_partial_length:]
-        val_index = val_index[val_partial_length:]
-        p.start()
-        processes.append(p)
+    #     #print(os.environ['CUDA_VISIBLE_DEVICES'])
+    #     p = mp.Process(target=train_basic, args=(net, exp_name, world_size, args, train_index[:train_partial_length], val_index[:val_partial_length]))
+    #     train_index = train_index[train_partial_length:]
+    #     val_index = val_index[val_partial_length:]
+    #     p.start()
+    #     processes.append(p)
 
-    for p in processes:
-        p.join()
+    # for p in processes:
+    #     p.join()

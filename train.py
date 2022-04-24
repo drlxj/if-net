@@ -22,7 +22,8 @@ def cleanup():
     dist.destroy_process_group()
 
 def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
-    pass
+    setup(rank, world_size)
+    cleanup()
 
 def train_basic_origin(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")

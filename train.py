@@ -101,7 +101,6 @@ if __name__ == '__main__':
 
 
     processes = []
-    mp.set_start_method("spawn")
 
     random.seed(time.time())
     split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
@@ -124,6 +123,7 @@ if __name__ == '__main__':
              args=(net, exp_name, world_size, args, train_index, val_index),
              nprocs=world_size,
              join=True)
+    print("main finished")
     # for rank in range(world_size):
         
     #     #print(os.environ['CUDA_VISIBLE_DEVICES'])

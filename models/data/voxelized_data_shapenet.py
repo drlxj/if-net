@@ -33,12 +33,13 @@ class VoxelizedDataset(Dataset):
         self.world_size = world_size # the number of data assigned to each gpu
         self.split = np.load(split_file) # addresses of train, test, eval data set
         self.data = self.split[mode] # mode = 'train', 'test', or 'eval'
-        self.partition_index = partition_index # indices left for other dataset to partition
-        random.shuffle(self.partition_index)
+        # self.partition_index = partition_index # indices left for other dataset to partition
+        self.partition_index = partition_index # indices for self partition
         if world_size>1:
-            if not rank and not len(partition_index):
-                self.partition_index = list(range(len(self.split[mode])))
-            self.partition_idx(len(self.split[mode]))
+            # if not rank and not len(partition_index):
+            #     self.partition_index = list(range(len(self.split[mode])))
+            # self.partition_idx(len(self.split[mode]))
+            self.data = self.data[self.partition_index]
         self.res = res
 
         self.num_sample_points = num_sample_points

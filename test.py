@@ -59,6 +59,7 @@ def demo_basic(rank, world_size):
     loss_fn(outputs, labels).backward()
     optimizer.step()
 
+    dist.barrier()
     print(f"Rank {rank} finished")
     cleanup()
 

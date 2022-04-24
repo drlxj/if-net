@@ -22,6 +22,9 @@ def cleanup():
     dist.destroy_process_group()
 
 def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+    pass
+
+def train_basic_origin(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
     train_length = len(train_index)
@@ -40,8 +43,8 @@ def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_to
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                             sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
 
-    #trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
-    #trainer.train_model(1500)
+    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
+    trainer.train_model(1500)
 
     cleanup()
 

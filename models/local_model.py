@@ -13,8 +13,10 @@ import torch.nn.functional as F
 # ----------------------------------------------------------------------------------------------------
 class ShapeNet32Vox(nn.Module):
 
-    def __init__(self, hidden_dim=256):
+    def __init__(self, hidden_dim=256, device=0):
         super(ShapeNet32Vox, self).__init__()
+
+        self.device = device
 
         self.conv_1 = nn.Conv3d(1, 32, 3, padding=1)  # out: 32
         self.conv_1_1 = nn.Conv3d(32, 64, 3, padding=1)  # out: 32
@@ -46,7 +48,7 @@ class ShapeNet32Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments, device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -92,8 +94,10 @@ class ShapeNet32Vox(nn.Module):
 
 class ShapeNet128Vox(nn.Module):
 
-    def __init__(self, hidden_dim=256):
+    def __init__(self, hidden_dim=256, device=0):
         super(ShapeNet128Vox, self).__init__()
+
+        self.device = device
         # accepts 128**3 res input
         self.conv_in = nn.Conv3d(1, 16, 3, padding=1)  # out: 128
         self.conv_0 = nn.Conv3d(16, 32, 3, padding=1)  # out: 64
@@ -130,7 +134,7 @@ class ShapeNet128Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments, device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -193,8 +197,10 @@ class ShapeNet128Vox(nn.Module):
 
 class ShapeNetPoints(nn.Module):
 
-    def __init__(self, hidden_dim=256):
+    def __init__(self, hidden_dim=256, device=0):
         super(ShapeNetPoints, self).__init__()
+
+        self.device = device
         # 128**3 res input
         self.conv_in = nn.Conv3d(1, 16, 3, padding=1, padding_mode='border')
         self.conv_0 = nn.Conv3d(16, 32, 3, padding=1, padding_mode='border')
@@ -231,7 +237,7 @@ class ShapeNetPoints(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.Tensor(displacments, device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)

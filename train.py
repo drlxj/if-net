@@ -37,13 +37,13 @@ def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_t
     val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     
     if args.model ==  'ShapeNet32Vox':
-        net = model.ShapeNet32Vox()
+        net = model.ShapeNet32Vox(rank)
 
     if args.model ==  'ShapeNet128Vox':
-        net = model.ShapeNet128Vox()
+        net = model.ShapeNet128Vox(rank)
 
     if args.model == 'ShapeNetPoints':
-        net = model.ShapeNetPoints()
+        net = model.ShapeNetPoints(rank)
 
     if args.model == 'SVR':
         net = model.SVR()

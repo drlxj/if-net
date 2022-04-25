@@ -68,7 +68,7 @@ class Trainer(object):
     def train_model(self, epochs):
         loss = 0
         # start = self.load_checkpoint()
-        map_location = {'cuda:%d' % 0: 'cuda:%d' % self.rank}
+        map_location = f'cuda:{self.rank}'
         start = self.load_checkpoint(map_location=map_location)
 
         for epoch in range(start, epochs):

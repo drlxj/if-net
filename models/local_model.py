@@ -48,7 +48,7 @@ class ShapeNet32Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.cuda.Tensor(displacments, device = self.device)
+        self.displacments = torch.Tensor(displacments).to(device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)

@@ -134,7 +134,7 @@ class ShapeNet128Vox(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments, device = self.device)
+        self.displacments = torch.cuda.Tensor(displacments, device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -237,7 +237,7 @@ class ShapeNetPoints(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments, device = self.device)
+        self.displacments = torch.cuda.Tensor(displacments, device = self.device)
 
     def forward(self, p, x):
         x = x.unsqueeze(1)
@@ -342,7 +342,7 @@ class SVR(nn.Module):
                 input[x] = y * displacment
                 displacments.append(input)
 
-        self.displacments = torch.Tensor(displacments).cuda()
+        self.displacments = torch.cuda.Tensor(displacments).cuda()
 
     def forward(self, p, x):
         x = x.unsqueeze(1)

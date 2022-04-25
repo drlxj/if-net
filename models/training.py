@@ -99,11 +99,11 @@ class Trainer(object):
                         if self.val_min is None:
                             self.val_min = val_loss
 
-                            if val_loss < self.val_min:
-                                self.val_min = val_loss
-                                for path in glob(self.exp_path + 'val_min=*'):
-                                    os.remove(path)
-                                np.save(self.exp_path + 'val_min={}'.format(epoch),[epoch,val_loss])
+                        if val_loss < self.val_min:
+                            self.val_min = val_loss
+                            for path in glob(self.exp_path + 'val_min=*'):
+                                os.remove(path)
+                            np.save(self.exp_path + 'val_min={}'.format(epoch),[epoch,val_loss])
 
 
                             self.writer.add_scalar('val loss batch avg', val_loss, epoch)

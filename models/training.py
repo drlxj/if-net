@@ -81,10 +81,10 @@ class Trainer(object):
                     if not self.rank:
                         self.save_checkpoint(epoch)
                     dist.barrier()
-                    val_loss_from_others = torch.zeros(1)
                     val_loss = self.compute_val_loss()
                     if not self.rank:
                         for rank in range(1,self.world_size):
+                            val_loss_from_others = torch.zeros(1)
                             dist.recv(tensor=val_loss_from_others, src=rank)
                             val_loss += val_loss_from_others
                         val_loss = val_loss/self.world_size

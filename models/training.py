@@ -31,7 +31,10 @@ class Trainer(object):
             if not parallel or not rank:
                 print(self.checkpoint_path)
                 os.makedirs(self.checkpoint_path)
-        self.writer = SummaryWriter(self.exp_path + 'summary'.format(exp_name))
+        if not parallel or not rank:
+            self.writer = SummaryWriter(self.exp_path + 'summary'.format(exp_name))
+        else:
+            self.writer = None
         self.val_min = None
         self.rank = rank
         self.world_size = world_size
@@ -126,9 +129,23 @@ class Trainer(object):
                 print("epoch: {}, batch: {}, Current loss: {}".format(epoch, ib, loss))
                 sum_loss += loss
 
-
-            self.writer.add_scalar('training loss last batch', loss, epoch)
-            self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            if self.parallel:
+                if not self.rank:
+                    #dist.send(tensor=torch.Tensor(val_loss), dst=1)
+                    for rank in range(1,self.world_size):
+                        train_loss_from_others = torch.zeros(1)
+                        dist.recv(tensor=train_loss_from_others, src=rank)
+                        sum_loss += train_loss_from_others.item()
+                    sum_loss = sum_loss/self.world_size
+                else:
+                    dist.send(tensor=torch.Tensor([sum_loss]), dst=0)
+                dist.barrier()
+                if not self.rank:
+                    self.writer.add_scalar('training loss last batch', loss, epoch)
+                    self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            else:
+                self.writer.add_scalar('training loss last batch', loss, epoch)
+                self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
 
 
 

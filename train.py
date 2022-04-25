@@ -25,7 +25,7 @@ def train_basic_backup(rank, net, exp_name, world_size, args, train_index_total,
     setup(rank, world_size)
     cleanup()
 
-def train_basic(rank, net, exp_name, world_size, args, train_index_total, val_index_total):
+def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
     #train_length = len(train_index_total)
@@ -36,6 +36,17 @@ def train_basic(rank, net, exp_name, world_size, args, train_index_total, val_in
     #train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
     #val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     
+    if args.model ==  'ShapeNet32Vox':
+        net = model.ShapeNet32Vox()
+
+    if args.model ==  'ShapeNet128Vox':
+        net = model.ShapeNet128Vox()
+
+    if args.model == 'ShapeNetPoints':
+        net = model.ShapeNetPoints()
+
+    if args.model == 'SVR':
+        net = model.SVR()
     #net = net.to(rank)
     #ddp_model = DDP(net, device_ids = [rank])
 
@@ -76,17 +87,7 @@ if __name__ == '__main__':
         args = parser.parse_known_args()[0]
 
 
-    if args.model ==  'ShapeNet32Vox':
-        net = model.ShapeNet32Vox()
-
-    if args.model ==  'ShapeNet128Vox':
-        net = model.ShapeNet128Vox()
-
-    if args.model == 'ShapeNetPoints':
-        net = model.ShapeNetPoints()
-
-    if args.model == 'SVR':
-        net = model.SVR()
+    
 
 
 
@@ -117,7 +118,7 @@ if __name__ == '__main__':
     #args = None
     
     mp.spawn(train_basic,
-             args=(net, exp_name, world_size, args, train_index, val_index),
+             args=(exp_name, world_size, args, train_index, val_index),
              nprocs=world_size,
              join=True)
     print("main finished")

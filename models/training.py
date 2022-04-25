@@ -139,6 +139,7 @@ class Trainer(object):
 
     def load_checkpoint(self, map_location):
         checkpoints = glob(self.checkpoint_path+'/*')
+        dist.barrier()
         if len(checkpoints) == 0:
             print('No checkpoints found at {}'.format(self.checkpoint_path))
             return 0

@@ -10,6 +10,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import numpy as np
 import random
 import time
+import torch.nn as nn
 
 def setup(rank, world_size):
     os.environ['MASTER_ADDR'] = 'localhost'
@@ -25,6 +26,16 @@ def train_basic_backup(rank, net, exp_name, world_size, args, train_index_total,
     setup(rank, world_size)
     cleanup()
 
+class ToyModel(nn.Module):
+    def __init__(self):
+        super(ToyModel, self).__init__()
+        self.net1 = nn.Linear(10, 10)
+        self.relu = nn.ReLU()
+        self.net2 = nn.Linear(10, 5)
+
+    def forward(self, x):
+        return self.net2(self.relu(self.net1(x)))
+
 def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_total):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
@@ -37,16 +48,17 @@ def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_t
     val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     
     if args.model ==  'ShapeNet32Vox':
-        net = model.ShapeNet32Vox(rank)
+        net = model.ShapeNet32Vox(rank = rank)
+        #net = ToyModel().to(rank)
 
     if args.model ==  'ShapeNet128Vox':
-        net = model.ShapeNet128Vox(rank)
+        net = model.ShapeNet128Vox(rank = rank)
 
     if args.model == 'ShapeNetPoints':
-        net = model.ShapeNetPoints(rank)
+        net = model.ShapeNetPoints(rank = rank)
 
     if args.model == 'SVR':
-        net = model.SVR()
+        net = model.SVR(rank = rank)
     net = net.to(rank)
     ddp_model = DDP(net, device_ids = [rank])
 
@@ -55,8 +67,8 @@ def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_t
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
 
-    #trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
-    #trainer.train_model(1500)
+    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
+    trainer.train_model(1500)
 
     cleanup()
 
@@ -92,7 +104,7 @@ if __name__ == '__main__':
 
 
     
-    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
+    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}_parallel'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
                                         ''.join(str(e)+'_' for e in args.sample_distribution),
                                         ''.join(str(e) +'_'for e in args.sample_sigmas),
                                                                     args.res,args.model)

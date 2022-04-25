@@ -86,10 +86,10 @@ class Trainer(object):
                         for rank in range(1,self.world_size):
                             val_loss_from_others = torch.zeros(1)
                             dist.recv(tensor=val_loss_from_others, src=rank)
-                            val_loss += val_loss_from_others
+                            val_loss += val_loss_from_others.item()
                         val_loss = val_loss/self.world_size
                     else:
-                        dist.send(tensor=val_loss, dst=0)
+                        dist.send(tensor=torch.Tensor(val_loss), dst=0)
                     dist.barrier()
                     if not self.rank:
                         if self.val_min is None:

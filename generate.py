@@ -49,7 +49,7 @@ dataset = voxelized_data.VoxelizedDataset(args.mode, voxelized_pointcloud= args.
                                           sample_sigmas=args.sample_sigmas ,num_sample_points=100, batch_size=1, num_workers=0)
 
 
-exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
+exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}_parallel'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
                                     ''.join(str(e)+'_' for e in args.sample_distribution),
                                        ''.join(str(e) +'_'for e in args.sample_sigmas),
                                                                 args.res,args.model)

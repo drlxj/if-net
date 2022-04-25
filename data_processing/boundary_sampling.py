@@ -23,7 +23,7 @@ def boundary_sampling(tmp_path):
 
         mesh = trimesh.load(off_path) # trimesh.Trimesh
         points = mesh.sample(sample_num) # Return random samples distributed across the surface of the mesh
-
+              
         boundary_points = points + args.sigma * np.random.randn(sample_num, 3)
         grid_coords = boundary_points.copy()
         grid_coords[:, 0], grid_coords[:, 2] = boundary_points[:, 2], boundary_points[:, 0]

@@ -9,7 +9,7 @@ import argparse
 from glob import glob
 import traceback
 import random
-from voxels import VoxelGrid
+from data_processing.voxels import VoxelGrid
 import numpy as np
 
 

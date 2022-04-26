@@ -32,7 +32,6 @@ if __name__ == '__main__':
     for file in test_files:
         test_paths.append(os.path.splitext(file)[0])
     test = np.array(test_paths, dtype = np.str_)
-    print(test)
 
     np.savez("/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz", train = train, val = val, test = test)
 

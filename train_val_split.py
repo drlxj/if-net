@@ -4,7 +4,7 @@ from glob import glob
 import random
 
 if __name__ == '__main__':
-    ROOT1 = '../SHARP_data/track1/train_partial'
+    ROOT1 = '../SHARP_data/track2/train_partial'
     folders = glob(ROOT1 + '/*/')
     folders = np.array(folders, dtype = np.str_)
     
@@ -26,7 +26,7 @@ if __name__ == '__main__':
             val.append(os.path.splitext(file)[0])
     val = np.array(val, dtype = np.str_)
 
-    ROOT2 = '../SHARP_data/track1/test_partial'
+    ROOT2 = '../SHARP_data/track2/test_partial'
     test_files = glob(ROOT2 + '/*/*scaled.off')
     test_paths = []
     for file in test_files:

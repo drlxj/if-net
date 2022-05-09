@@ -61,7 +61,8 @@ def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_t
         net = model.SVR(rank = rank)
     net = net.to(rank)
     ddp_model = DDP(net, device_ids = [rank])
-
+    if torch.cuda.get_device_name(rank) == " NVIDIA GeForce GTX 1080":
+        args.batch_size = int(args.batch_size/11.0*8)
     train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = train_index)
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,

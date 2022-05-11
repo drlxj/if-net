@@ -63,7 +63,7 @@ if __name__ == '__main__':
     min = -0.5
     max = 0.5
 
-    npz_paths = glob.glob(ROOT + '/*/*..npz')
+    npz_paths = glob.glob(ROOT + '/*/*.obj')
     new_paths = []
     for npz_path in npz_paths:
         path = os.path.splitext(npz_path)[0]

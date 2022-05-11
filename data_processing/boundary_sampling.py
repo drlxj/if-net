@@ -30,11 +30,12 @@ def boundary_sampling(tmp_path):
 
         grid_coords = 2 * grid_coords
 
-        root = os.path.split(off_path)[0]
-        last = root.split(os.sep)[-1]
-        second_last = root.split(os.sep)[-2]
-        second_last = second_last[:-8]
-        mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
+        #root = os.path.split(off_path)[0]
+        #last = root.split(os.sep)[-1]
+        #second_last = root.split(os.sep)[-2]
+        #second_last = second_last[:-8]
+        #mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
+        mesh_gt = trimesh.load(off_path)
         occupancies = iw.implicit_waterproofing(mesh_gt, boundary_points)[0]
 
         np.savez(out_file, points=boundary_points, occupancies = occupancies, grid_coords= grid_coords)

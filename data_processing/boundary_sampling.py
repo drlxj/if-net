@@ -53,11 +53,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.data == "train":
-        ROOT = '../SHARP_data/track1/train_partial'
+        ROOT = '../SHARP_data/track2/train_partial'
     elif args.data == "test":
-        ROOT = '../SHARP_data/track1/test_partial'
+        ROOT = '../SHARP_data/track2/test_partial'
     elif args.data == "test-codalab-partial":
-        ROOT = '../SHARP_data/track1/test-codalab-partial'
+        ROOT = '../SHARP_data/track2/test-codalab-partial'
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
 
     sample_num = 100000

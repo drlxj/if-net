@@ -31,15 +31,17 @@ delete = parser.parse_args().delete
 data = parser.parse_args().data
 
 if data == "train":
-    ROOT = '../SHARP_data/track1/train_partial'
+    ROOT = '../SHARP_data/track2/train_partial'
 elif data == "test":
-    ROOT = '../SHARP_data/track1/test_partial'
+    ROOT = '../SHARP_data/track2/test_partial'
 elif data == "test-codalab-partial":
-    ROOT = '../SHARP_data/track1/test-codalab-partial'
+    ROOT = '../SHARP_data/track2/test-codalab-partial'
 elif data == "train_gt":
-    ROOT = '../SHARP_data/track1/train'
+    ROOT = '../SHARP_data/track2/train'
 elif data == "test_gt":
-    ROOT = '../SHARP_data/track1/test'
+    ROOT = '../SHARP_data/track2/test'
+elif args.data == "val":
+    ROOT = '../SHARP_data/track3/val_partial'
 
 paths = glob.glob(ROOT + '/*/*..npz')
 new_paths = []

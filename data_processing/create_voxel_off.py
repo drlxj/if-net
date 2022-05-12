@@ -1,4 +1,4 @@
-from voxels import VoxelGrid
+from if_net.data_processing.voxels import VoxelGrid
 import numpy as np
 import multiprocessing as mp
 from multiprocessing import Pool
@@ -33,9 +33,6 @@ def create_voxel_off(tmp_path):
 
 
 
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run voxalization to off'
@@ -55,13 +52,18 @@ if __name__ == '__main__':
         ROOT = '../SHARP_data/track2/train'
     elif args.data == "test_gt":
         ROOT = '../SHARP_data/track2/test'
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
     unpackbits = True
     res = args.res
     min = -0.5
     max = 0.5
-
-    npz_paths = glob.glob(ROOT + '/*/*..npz')
+    
+    if args.data == "val":
+        npz_paths = glob.glob(ROOT + '/*/*.obj')
+    else:
+        npz_paths = glob.glob(ROOT + '/*/*..npz')
     new_paths = []
     for npz_path in npz_paths:
         path = os.path.splitext(npz_path)[0]

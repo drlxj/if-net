@@ -38,6 +38,12 @@ if __name__ == '__main__':
         ROOT = '../SHARP_data/track2/test_partial'
     elif args.data == "test-codalab-partial":
         ROOT = '../SHARP_data/track2/test-codalab-partial'
+    elif args.data == "train_gt":
+        ROOT = '../SHARP_data/track2/train'
+    elif args.data == "test_gt":
+        ROOT = '../SHARP_data/track2/test'
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
     pc_paths = glob.glob(ROOT + '/*/*voxelized_point_cloud_*.npz')
     new_paths = []

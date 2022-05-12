@@ -62,7 +62,8 @@ if __name__ == '__main__':
         ROOT = '../SHARP_data/track2/train'
     elif args.data == "test_gt":
         ROOT = '../SHARP_data/track2/test'
-
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
     bb_min = -0.5
     bb_max = 0.5

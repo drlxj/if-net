@@ -6,7 +6,7 @@ import multiprocessing as mp
 from multiprocessing import Pool
 from functools import partial
 import traceback
-import voxels
+from if_net.data_processing import voxels
 import argparse
 
 
@@ -54,6 +54,8 @@ if __name__ == '__main__':
         ROOT = '../SHARP_data/track2/train'
     elif args.data == "test_gt":
         ROOT = '../SHARP_data/track2/test'
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
     p = Pool(mp.cpu_count())
-    p.map(partial(voxelize, res=args.res), glob.glob( ROOT + '/*/*..npz'))
+    p.map(partial(voxelize, res=args.res), glob.glob( ROOT + '/*/*.obj'))

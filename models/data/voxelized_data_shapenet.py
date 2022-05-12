@@ -17,7 +17,7 @@ class VoxelizedDataset(Dataset):
 
     def __init__(self, mode, res = 32,  voxelized_pointcloud = False, pointcloud_samples = 3000, 
                  data_path = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/', 
-                 split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz',
+                 split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track2/split.npz',
                  batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], 
                  sample_sigmas = [0.015], world_size = 0,rank = -1, partition_index = [], **kwargs):
         

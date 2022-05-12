@@ -40,8 +40,10 @@ elif data == "train_gt":
     ROOT = '../SHARP_data/track2/train'
 elif data == "test_gt":
     ROOT = '../SHARP_data/track2/test'
+elif data == "val":
+    ROOT = '../SHARP_data/track3/val_partial'
 
-paths = glob.glob(ROOT + '/*/*..npz')
+paths = glob.glob(ROOT + '/*/*.obj')
 new_paths = []
 for i , path in enumerate(paths):
     new_paths.append((path, delete, file))

@@ -28,9 +28,13 @@ class Trainer(object):
         self.exp_path = os.path.dirname(__file__) + '/../experiments/{}/'.format( exp_name)
         self.checkpoint_path = self.exp_path + 'checkpoints/'.format( exp_name)
         if not os.path.exists(self.checkpoint_path):
-            print(self.checkpoint_path)
-            os.makedirs(self.checkpoint_path)
-        self.writer = SummaryWriter(self.exp_path + 'summary'.format(exp_name))
+            if not parallel or not rank:
+                print(self.checkpoint_path)
+                os.makedirs(self.checkpoint_path)
+        if not parallel or not rank:
+            self.writer = SummaryWriter(self.exp_path + 'summary'.format(exp_name))
+        else:
+            self.writer = None
         self.val_min = None
         self.rank = rank
         self.world_size = world_size
@@ -67,7 +71,7 @@ class Trainer(object):
     def train_model(self, epochs):
         loss = 0
         # start = self.load_checkpoint()
-        map_location = {'cuda:%d' % 0: 'cuda:%d' % self.rank}
+        map_location = f'cuda:{self.rank}'
         start = self.load_checkpoint(map_location=map_location)
 
         for epoch in range(start, epochs):
@@ -80,25 +84,26 @@ class Trainer(object):
                     if not self.rank:
                         self.save_checkpoint(epoch)
                     dist.barrier()
-                    val_loss_from_others = torch.zeros(1)
                     val_loss = self.compute_val_loss()
                     if not self.rank:
+                        #dist.send(tensor=torch.Tensor(val_loss), dst=1)
                         for rank in range(1,self.world_size):
+                            val_loss_from_others = torch.zeros(1)
                             dist.recv(tensor=val_loss_from_others, src=rank)
-                            val_loss += val_loss_from_others
+                            val_loss += val_loss_from_others.item()
                         val_loss = val_loss/self.world_size
                     else:
-                        dist.send(tensor=val_loss, dst=0)
+                        dist.send(tensor=torch.Tensor([val_loss]), dst=0)
                     dist.barrier()
                     if not self.rank:
                         if self.val_min is None:
                             self.val_min = val_loss
 
-                            if val_loss < self.val_min:
-                                self.val_min = val_loss
-                                for path in glob(self.exp_path + 'val_min=*'):
-                                    os.remove(path)
-                                np.save(self.exp_path + 'val_min={}'.format(epoch),[epoch,val_loss])
+                        if val_loss < self.val_min:
+                            self.val_min = val_loss
+                            for path in glob(self.exp_path + 'val_min=*'):
+                                os.remove(path)
+                            np.save(self.exp_path + 'val_min={}'.format(epoch),[epoch,val_loss])
 
 
                             self.writer.add_scalar('val loss batch avg', val_loss, epoch)
@@ -124,9 +129,23 @@ class Trainer(object):
                 print("epoch: {}, batch: {}, Current loss: {}".format(epoch, ib, loss))
                 sum_loss += loss
 
-
-            self.writer.add_scalar('training loss last batch', loss, epoch)
-            self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            if self.parallel:
+                if not self.rank:
+                    #dist.send(tensor=torch.Tensor(val_loss), dst=1)
+                    for rank in range(1,self.world_size):
+                        train_loss_from_others = torch.zeros(1)
+                        dist.recv(tensor=train_loss_from_others, src=rank)
+                        sum_loss += train_loss_from_others.item()
+                    sum_loss = sum_loss/self.world_size
+                else:
+                    dist.send(tensor=torch.Tensor([sum_loss]), dst=0)
+                dist.barrier()
+                if not self.rank:
+                    self.writer.add_scalar('training loss last batch', loss, epoch)
+                    self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            else:
+                self.writer.add_scalar('training loss last batch', loss, epoch)
+                self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
 
 
 
@@ -138,6 +157,7 @@ class Trainer(object):
 
     def load_checkpoint(self, map_location):
         checkpoints = glob(self.checkpoint_path+'/*')
+        dist.barrier()
         if len(checkpoints) == 0:
             print('No checkpoints found at {}'.format(self.checkpoint_path))
             return 0

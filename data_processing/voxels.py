@@ -3,8 +3,8 @@ import numpy as np
 import trimesh
 from scipy import ndimage
 from skimage.measure import block_reduce
-from libvoxelize.voxelize import voxelize_mesh_
-from libmesh.inside_mesh import check_mesh_contains
+from if_net.data_processing.libvoxelize.voxelize import voxelize_mesh_
+from if_net.data_processing.libmesh.inside_mesh import check_mesh_contains
 
 # From Occupancy Networks, Mescheder et. al. CVPR'19
 

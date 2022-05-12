@@ -26,8 +26,8 @@ import tqdm
 
 def scale(path):
 
-    #if os.path.exists(path + '_scaled.off'):
-     #   return
+    if os.path.exists(path + '_scaled.off'):
+        return
 
     #try:
     input_file  = path + '.obj'
@@ -59,14 +59,14 @@ if __name__ == '__main__':
     elif args.data == "test-codalab-partial":
         INPUT_PATH = '../SHARP_data/track2/test-codalab-partial'
     elif args.data == "train_gt":
-        INPUT_PATH = '../SHARP_data/track2/train'
+        INPUT_PATH = '../SHARP_data/track2/train_gt'
     elif args.data == "test_gt":
-        INPUT_PATH = '../SHARP_data/track2/test'
+        INPUT_PATH = '../SHARP_data/track2/test_gt'
     elif args.data == "val":
         INPUT_PATH = '../SHARP_data/track3/val_partial'
 
     p = Pool(20)
-    if args.data == "val":
+    if args.data == "val" or args.data == "train_gt" or args.data == "test_gt":
         for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*.obj'), desc = 'to_off'):
             #print(f"current file: {file}")
             fname = os.path.splitext(file)[0]

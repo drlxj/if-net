@@ -6,7 +6,7 @@ import multiprocessing as mp
 from multiprocessing import Pool
 from functools import partial
 import traceback
-import voxels
+from if_net.data_processing import voxels
 import argparse
 
 

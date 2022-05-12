@@ -36,8 +36,8 @@ def boundary_sampling(tmp_path):
             root = os.path.split(off_path)[0]
             last = root.split(os.sep)[-1]
             second_last = root.split(os.sep)[-2]
-            second_last = second_last[:-8]
-            mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
+            second_last = second_last[:-8] + "_gt"
+            mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_scaled.off"))
         
         occupancies = iw.implicit_waterproofing(mesh_gt, boundary_points)[0]
 

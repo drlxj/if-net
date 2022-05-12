@@ -1,0 +1,59 @@
+Sender: LSF System <lsfadmin@eu-g2-06>
+Subject: Job 215590830: <nvidia-smi> in cluster <euler> Done
+
+Job <nvidia-smi> was submitted from host <eu-login-18> by user <pezeng> in cluster <euler> at Sun Apr 24 22:00:37 2022
+Job was executed on host(s) <eu-g2-06>, in queue <gpu.4h>, as user <pezeng> in cluster <euler> at Sun Apr 24 22:01:07 2022
+</cluster/home/pezeng> was used as the home directory.
+</cluster/home/pezeng/group/if-net> was used as the working directory.
+Started at Sun Apr 24 22:01:07 2022
+Terminated at Sun Apr 24 22:01:14 2022
+Results reported at Sun Apr 24 22:01:14 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+nvidia-smi
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   0.29 sec.
+    Max Memory :                                 17 MB
+    Average Memory :                             2.00 MB
+    Total Requested Memory :                     30000.00 MB
+    Delta Memory :                               29983.00 MB
+    Max Swap :                                   -
+    Max Processes :                              1
+    Max Threads :                                1
+    Run time :                                   32 sec.
+    Turnaround time :                            37 sec.
+
+The output (if any) follows:
+
+Sun Apr 24 22:01:09 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 510.47.03    Driver Version: 510.47.03    CUDA Version: 11.6     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA GeForce ...  Off  | 00000000:1B:00.0 Off |                  N/A |
+|  0%   28C    P8    18W / 250W |      0MiB / 11264MiB |      0%   E. Process |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+|   1  NVIDIA GeForce ...  Off  | 00000000:B1:00.0 Off |                  N/A |
+|  0%   28C    P8     3W / 250W |      0MiB / 11264MiB |      0%   E. Process |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+

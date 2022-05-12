@@ -8,9 +8,6 @@ import argparse
 import os
 import traceback
 
-#ROOT = 'shapenet/data'
-ROOT = '../SHARP_data/track1/test_partial'
-
 
 def boundary_sampling(tmp_path):
     path, off_path, args, sample_num = tmp_path
@@ -26,18 +23,22 @@ def boundary_sampling(tmp_path):
 
         mesh = trimesh.load(off_path) # trimesh.Trimesh
         points = mesh.sample(sample_num) # Return random samples distributed across the surface of the mesh
-
+              
         boundary_points = points + args.sigma * np.random.randn(sample_num, 3)
         grid_coords = boundary_points.copy()
         grid_coords[:, 0], grid_coords[:, 2] = boundary_points[:, 2], boundary_points[:, 0]
 
         grid_coords = 2 * grid_coords
-
-        root = os.path.split(off_path)[0]
-        last = root.split(os.sep)[-1]
-        second_last = root.split(os.sep)[-2]
-        second_last = second_last[:-8]
-        mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
+        
+        if args.data == "val":
+            mesh_gt = trimesh.load(off_path)
+        else:
+            root = os.path.split(off_path)[0]
+            last = root.split(os.sep)[-1]
+            second_last = root.split(os.sep)[-2]
+            second_last = second_last[:-8] + "_gt"
+            mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_scaled.off"))
+        
         occupancies = iw.implicit_waterproofing(mesh_gt, boundary_points)[0]
 
         np.savez(out_file, points=boundary_points, occupancies = occupancies, grid_coords= grid_coords)
@@ -56,19 +57,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.data == "train":
-        ROOT = '../SHARP_data/track1/train_partial'
+        ROOT = '../SHARP_data/track2/train_partial'
     elif args.data == "test":
-        ROOT = '../SHARP_data/track1/test_partial'
+        ROOT = '../SHARP_data/track2/test_partial'
     elif args.data == "test-codalab-partial":
-        ROOT = '../SHARP_data/track1/test-codalab-partial'
+        ROOT = '../SHARP_data/track2/test-codalab-partial'
+    elif args.data == "val":
+        ROOT = '../SHARP_data/track3/val_partial'
 
 
     sample_num = 100000
-
-    # paths = glob.glob(ROOT + '/*/*/')
-    # new_paths = []
-    # for path in paths:
-    #     new_paths.append((path,args, sample_num))
 
     off_paths = glob.glob(ROOT + '/*/*scaled.off')
     new_paths = []

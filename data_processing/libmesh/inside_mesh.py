@@ -1,5 +1,7 @@
 import numpy as np
-from libmesh.triangle_hash import TriangleHash as _TriangleHash
+#import data_processing.libmesh.inside_mesh
+from if_net.data_processing.libmesh.triangle_hash import TriangleHash as _TriangleHash
+
 
 
 def check_mesh_contains(mesh, points, hash_resolution=512):

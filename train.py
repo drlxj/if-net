@@ -2,10 +2,54 @@ import models.local_model as model
 import models.data.voxelized_data_shapenet as voxelized_data
 from models import training
 import argparse
+import os
 import torch
+import torch.distributed as dist
+import torch.multiprocessing as mp
+from torch.nn.parallel import DistributedDataParallel as DDP
+import numpy as np
+import random
+import time
+
+def setup(rank, world_size):
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    # initialize the process group
+    dist.init_process_group("gloo", rank=rank, world_size=world_size)
+
+def cleanup():
+    dist.destroy_process_group()
+
+def train_basic(rank, net, exp_name, optimizer, world_size, args, train_index_total, val_index_total):
+    train_length = len(train_index)
+    val_length = len(val_index)
+
+    train_partial_length = int(train_length/world_size)
+    val_partial_length = int(val_length/world_size)
+    train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
+    val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
+    print(f"Running basic DDP on rank {rank}.")
+    print(os.environ['CUDA_VISIBLE_DEVICES'])
+    setup(rank, world_size)
+    net = net.to(rank)
+    ddp_model = DDP(net, device_ids = [rank])
+
+    train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
+                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = train_index)
+    val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
+                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
+
+    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=optimizer)
+    trainer.train_model(1500)
+
+    cleanup()
+
+    
 
 if __name__ == '__main__':
     # python train.py -posed -dist 0.5 0.5 -std_dev 0.15 0.05 -res 32 -batch_size 40 -m
+    os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
     parser = argparse.ArgumentParser(
         description='Run Model'
     )
@@ -42,21 +86,52 @@ if __name__ == '__main__':
 
 
 
-    train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0)
-
-    val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                            sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0)
-    # import pickle
-    # with open("val_dataset.pkl", 'w') as f:
-    #     pickle.dump(val_dataset, f)
-    # raise ValueError
-
-
+    
     exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
                                         ''.join(str(e)+'_' for e in args.sample_distribution),
                                         ''.join(str(e) +'_'for e in args.sample_sigmas),
                                                                     args.res,args.model)
 
-    trainer = training.Trainer(net,torch.device("cuda"),train_dataset, val_dataset,exp_name, optimizer=args.optimizer)
-    trainer.train_model(1500)
+    # trainer = training.Trainer(net,torch.device("cuda"),train_dataset, val_dataset,exp_name, optimizer=args.optimizer)
+    # trainer.train_model(1500)
+
+    n_gpus = torch.cuda.device_count()
+    assert n_gpus >= 2, f"Requires at least 2 GPUs to run, but got {n_gpus}"
+    world_size = n_gpus-1
+
+
+    processes = []
+    mp.set_start_method("spawn")
+
+    random.seed(time.time())
+    split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
+    
+    train_index_left = []
+    val_index_left = []
+
+    train_index = list(range(len(np.load(split_file)['train'])))
+    val_index = list(range(len(np.load(split_file)['val'])))
+
+    train_length = len(train_index)
+    val_length = len(val_index)
+
+    train_partial_length = int(train_length/world_size)
+    val_partial_length = int(val_length/world_size)
+
+    random.shuffle(train_index)
+    random.shuffle(val_index)
+    mp.spawn(train_basic,
+             args=(net, exp_name, world_size, args, train_index, val_index),
+             nprocs=world_size,
+             join=True)
+    # for rank in range(world_size):
+        
+    #     #print(os.environ['CUDA_VISIBLE_DEVICES'])
+    #     p = mp.Process(target=train_basic, args=(net, exp_name, world_size, args, train_index[:train_partial_length], val_index[:val_partial_length]))
+    #     train_index = train_index[train_partial_length:]
+    #     val_index = val_index[val_partial_length:]
+    #     p.start()
+    #     processes.append(p)
+
+    # for p in processes:
+    #     p.join()

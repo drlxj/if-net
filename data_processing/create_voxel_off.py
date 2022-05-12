@@ -1,4 +1,4 @@
-from voxels import VoxelGrid
+from data_processing.voxels import VoxelGrid
 import numpy as np
 import multiprocessing as mp
 from multiprocessing import Pool

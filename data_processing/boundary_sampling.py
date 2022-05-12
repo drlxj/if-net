@@ -29,13 +29,16 @@ def boundary_sampling(tmp_path):
         grid_coords[:, 0], grid_coords[:, 2] = boundary_points[:, 2], boundary_points[:, 0]
 
         grid_coords = 2 * grid_coords
-
-        #root = os.path.split(off_path)[0]
-        #last = root.split(os.sep)[-1]
-        #second_last = root.split(os.sep)[-2]
-        #second_last = second_last[:-8]
-        #mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
-        mesh_gt = trimesh.load(off_path)
+        
+        if args.data == "val":
+            mesh_gt = trimesh.load(off_path)
+        else:
+            root = os.path.split(off_path)[0]
+            last = root.split(os.sep)[-1]
+            second_last = root.split(os.sep)[-2]
+            second_last = second_last[:-8]
+            mesh_gt = trimesh.load(os.path.join(root,"..","..",second_last,last,last+"_normalized_scaled.off"))
+        
         occupancies = iw.implicit_waterproofing(mesh_gt, boundary_points)[0]
 
         np.savez(out_file, points=boundary_points, occupancies = occupancies, grid_coords= grid_coords)
@@ -64,11 +67,6 @@ if __name__ == '__main__':
 
 
     sample_num = 100000
-
-    # paths = glob.glob(ROOT + '/*/*/')
-    # new_paths = []
-    # for path in paths:
-    #     new_paths.append((path,args, sample_num))
 
     off_paths = glob.glob(ROOT + '/*/*scaled.off')
     new_paths = []

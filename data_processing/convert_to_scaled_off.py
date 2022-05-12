@@ -53,29 +53,40 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.data == "train":
-        INPUT_PATH = '../SHARP_data/track1/train_partial'
+        INPUT_PATH = '../SHARP_data/track2/train_partial'
     elif args.data == "test":
-        INPUT_PATH = '../SHARP_data/track1/test_partial'
+        INPUT_PATH = '../SHARP_data/track2/test_partial'
     elif args.data == "test-codalab-partial":
-        INPUT_PATH = '../SHARP_data/track1/test-codalab-partial'
+        INPUT_PATH = '../SHARP_data/track2/test-codalab-partial'
     elif args.data == "train_gt":
-        INPUT_PATH = '../SHARP_data/track1/train'
+        INPUT_PATH = '../SHARP_data/track2/train'
     elif args.data == "test_gt":
-        INPUT_PATH = '../SHARP_data/track1/test'
+        INPUT_PATH = '../SHARP_data/track2/test'
     elif args.data == "val":
         INPUT_PATH = '../SHARP_data/track3/val_partial'
 
     p = Pool(20)
-    for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*.obj'), desc = 'to_off'):
-        #print(f"current file: {file}")
-        fname = os.path.splitext(file)[0]
-        if os.path.exists(fname+".obj"):
-            pass
-        else:
-            current_mesh = load_mesh(file)
-            save_obj(fname + '.obj', current_mesh, save_texture=True)
-        p.apply_async(scale,(fname,))    
-        #scale(fname)
+    if args.data == "val":
+        for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*.obj'), desc = 'to_off'):
+            #print(f"current file: {file}")
+            fname = os.path.splitext(file)[0]
+            if os.path.exists(fname+".obj"):
+                pass
+            else:
+                current_mesh = load_mesh(file)
+                save_obj(fname + '.obj', current_mesh, save_texture=True)
+            p.apply_async(scale,(fname,))    
+    else:
+         for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*..npz'), desc = 'to_off'):
+            #print(f"current file: {file}")
+            fname = os.path.splitext(file)[0]
+            if os.path.exists(fname+".obj"):
+                pass
+            else:
+                current_mesh = load_mesh(file)
+                save_obj(fname + '.obj', current_mesh, save_texture=True)
+            p.apply_async(scale,(fname,))   
+         
     # for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*.off'), desc = 'scale'):
     #     fname= os.path.splitext(file)[0]
     #     if os.path.exists(fname+"_scaled.off"):

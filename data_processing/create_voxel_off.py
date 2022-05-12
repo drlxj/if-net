@@ -33,9 +33,6 @@ def create_voxel_off(tmp_path):
 
 
 
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Run voxalization to off'
@@ -62,8 +59,11 @@ if __name__ == '__main__':
     res = args.res
     min = -0.5
     max = 0.5
-
-    npz_paths = glob.glob(ROOT + '/*/*.obj')
+    
+    if args.data == "val":
+        npz_paths = glob.glob(ROOT + '/*/*.obj')
+    else:
+        npz_paths = glob.glob(ROOT + '/*/*..npz')
     new_paths = []
     for npz_path in npz_paths:
         path = os.path.splitext(npz_path)[0]

@@ -36,16 +36,9 @@ class ToyModel(nn.Module):
     def forward(self, x):
         return self.net2(self.relu(self.net1(x)))
 
-def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_total):
+def train_basic(rank, exp_name, world_size, args):
     print(f"Running basic DDP on rank {rank}.")
     setup(rank, world_size)
-    train_length = len(train_index_total)
-    val_length = len(val_index_total)
-
-    train_partial_length = int(train_length/world_size)
-    val_partial_length = int(val_length/world_size)
-    train_index = train_index_total[train_partial_length*rank:train_partial_length*(rank+1)]
-    val_index = val_index_total[val_partial_length*rank:val_partial_length*(rank+1)]
     
     if args.model ==  'ShapeNet32Vox':
         net = model.ShapeNet32Vox(rank = rank)
@@ -64,10 +57,47 @@ def train_basic(rank, exp_name, world_size, args, train_index_total, val_index_t
     if torch.cuda.get_device_name(rank) == " NVIDIA GeForce GTX 1080":
         args.batch_size = int(args.batch_size/11.0*8)
     train_dataset = voxelized_data.VoxelizedDataset('train', voxelized_pointcloud= args.pointcloud, pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                           sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = train_index)
+                                           sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank)
     val_dataset = voxelized_data.VoxelizedDataset('val', voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
-                                           sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank, partition_index = val_index)   
+                                           sample_sigmas=args.sample_sigmas ,num_sample_points=50000, batch_size=args.batch_size, num_workers=0, world_size = world_size, rank = rank)   
 
+    # Train index shuffle
+    train_length = len(train_dataset)
+    train_partial_length = int(train_length/world_size)
+    if not rank:
+        #dist.send(tensor=torch.Tensor(val_loss), dst=1)
+        train_index = np.arange(0,train_length, dtype = int)
+        np.random.shuffle(train_index)
+        for i in range(1, world_size):
+            partial_index = torch.from_numpy(train_index[train_partial_length*i: train_partial_length*(i+1)])
+            dist.send(tensor=partial_index.to(dtype = torch.int), dst=i)
+        train_index = train_index[: train_partial_length]
+    else:
+        index_torch = torch.zeros(train_partial_length,dtype=torch.int)
+        dist.recv(tensor=index_torch, src=0)
+        train_index = index_torch.detach().cpu().numpy()
+    dist.barrier()
+
+    # Validation index shuffle
+    val_length = len(val_dataset)
+    val_partial_length = int(val_length/world_size)
+    if not rank:
+        val_index = np.arange(0,val_length, dtype = int)
+        np.random.shuffle(val_index)
+        for i in range(1, world_size):
+            partial_index = torch.from_numpy(val_index[val_partial_length*i: val_partial_length*(i+1)])
+            dist.send(tensor=partial_index.to(dtype = torch.int), dst=i)
+        val_index = val_index[: val_partial_length]
+    else:
+        index_torch = torch.zeros(val_partial_length,dtype=torch.int)
+        dist.recv(tensor=index_torch, src=0)
+        val_index = index_torch.detach().cpu().numpy()
+    dist.barrier()
+
+    train_dataset.random_split(train_index)
+    val_dataset.random_split(val_index)
+    
+    
     trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer, parallel=True)
     dist.barrier()
     trainer.train_model(1500)
@@ -120,19 +150,12 @@ if __name__ == '__main__':
     processes = []
 
     random.seed(time.time())
-    split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track1/split.npz'
-    
-    train_index = list(range(len(np.load(split_file)['train'])))
-    val_index = list(range(len(np.load(split_file)['val'])))
-
-    random.shuffle(train_index)
-    random.shuffle(val_index)
 
     #net = None
     #args = None
     
     mp.spawn(train_basic,
-             args=(exp_name, world_size, args, train_index, val_index),
+             args=(exp_name, world_size, args),
              nprocs=world_size,
              join=True)
     print("main finished")

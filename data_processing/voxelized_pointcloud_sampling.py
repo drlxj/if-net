@@ -1,4 +1,4 @@
-import implicit_waterproofing as iw
+import if_net.data_processing.implicit_waterproofing as iw
 from scipy.spatial import cKDTree as KDTree
 import numpy as np
 import trimesh

@@ -12,7 +12,7 @@ import torch.distributed as dist
 
 class Trainer(object):
 
-    def __init__(self, model, device, train_dataset, val_dataset, exp_name, rank, world_size, optimizer='Adam', parallel = False):
+    def __init__(self, model, device, train_dataset, val_dataset, exp_name, rank, world_size, optimizer='Adam'):
         # self.model = model.to(device)
         self.model = model
         self.device = device
@@ -28,17 +28,16 @@ class Trainer(object):
         self.exp_path = os.path.dirname(__file__) + '/../experiments/{}/'.format( exp_name)
         self.checkpoint_path = self.exp_path + 'checkpoints/'.format( exp_name)
         if not os.path.exists(self.checkpoint_path):
-            if not parallel or not rank:
+            if not rank:
                 print(self.checkpoint_path)
                 os.makedirs(self.checkpoint_path)
-        if not parallel or not rank:
+        if not rank:
             self.writer = SummaryWriter(self.exp_path + 'summary'.format(exp_name))
         else:
             self.writer = None
         self.val_min = None
         self.rank = rank
         self.world_size = world_size
-        self.parallel = parallel
 
 
     def train_step(self,batch):

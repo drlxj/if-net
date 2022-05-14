@@ -1,6 +1,6 @@
 import trimesh
 import numpy as np
-import implicit_waterproofing as iw
+import if_net.data_processing.implicit_waterproofing as iw
 import glob
 import multiprocessing as mp
 from multiprocessing import Pool

@@ -1,4 +1,4 @@
-from evaluation import eval_mesh, eval_pointcloud
+from if_net.data_processing.evaluation import eval_mesh, eval_pointcloud
 import trimesh
 import pickle as pkl
 import os

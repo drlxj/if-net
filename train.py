@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
 
     
-    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}_parallel_plus'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
+    exp_name = 'i{}_dist-{}sigmas-{}v{}_m{}'.format(  'PC' + str(args.pc_samples) if args.pointcloud else 'Voxels',
                                         ''.join(str(e)+'_' for e in args.sample_distribution),
                                         ''.join(str(e) +'_'for e in args.sample_sigmas),
                                                                     args.res,args.model)

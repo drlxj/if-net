@@ -27,17 +27,19 @@ def generate_basic(rank, exp_name, world_size, args):
     setup(rank, world_size)
     
     if args.model ==  'ShapeNet32Vox':
-        net = model.ShapeNet32Vox()
+        net = model.ShapeNet32Vox(rank = rank)
 
     if args.model ==  'ShapeNet128Vox':
-        net = model.ShapeNet128Vox()
+        net = model.ShapeNet128Vox(rank = rank)
 
     if args.model == 'ShapeNetPoints':
-        net = model.ShapeNetPoints()
+        net = model.ShapeNetPoints(rank = rank)
 
     if args.model == 'SVR':
-        net = model.SVR()
+        net = model.SVR(rank = rank)
 
+    net = net.to(rank)
+    ddp_model = DDP(net, device_ids = [rank])
 
     dataset = voxelized_data.VoxelizedDataset(args.mode, voxelized_pointcloud= args.pointcloud , pointcloud_samples= args.pc_samples, res=args.res, sample_distribution=args.sample_distribution,
                                             sample_sigmas=args.sample_sigmas ,num_sample_points=100, batch_size=1, num_workers=0)
@@ -62,7 +64,7 @@ def generate_basic(rank, exp_name, world_size, args):
     dataset.random_split(gen_index)
 
 
-    gen = Generator(net,0.5, exp_name, checkpoint=args.checkpoint ,resolution=args.retrieval_res, batch_points=args.batch_points)
+    gen = Generator(ddp_model,0.5, exp_name, checkpoint=args.checkpoint, device=ddp_model.device, resolution=args.retrieval_res, batch_points=args.batch_points, rank=rank, world_size=world_size)
 
     out_path = 'experiments/{}/evaluation_{}_@{}/'.format(exp_name,args.checkpoint, args.retrieval_res)
 

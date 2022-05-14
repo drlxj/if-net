@@ -98,7 +98,7 @@ def train_basic(rank, exp_name, world_size, args):
     val_dataset.random_split(val_index)
     
     
-    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer, parallel=True)
+    trainer = training.Trainer(ddp_model, ddp_model.device, train_dataset, val_dataset,exp_name, rank = rank, world_size = world_size, optimizer=args.optimizer)
     dist.barrier()
     trainer.train_model(1500)
 

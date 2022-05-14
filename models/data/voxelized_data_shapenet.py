@@ -19,7 +19,7 @@ class VoxelizedDataset(Dataset):
                  data_path = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/', 
                  split_file = '/cluster/project/infk/courses/252-0579-00L/group20/SHARP_data/track2/split.npz',
                  batch_size = 64, num_sample_points = 1024, num_workers = 12, sample_distribution = [1], 
-                 sample_sigmas = [0.015], world_size = 0,rank = -1, partition_index = [], **kwargs):
+                 sample_sigmas = [0.015], world_size = 0,rank = -1, **kwargs):
         
         self.sample_distribution = np.array(sample_distribution)
         self.sample_sigmas = np.array(sample_sigmas)
@@ -33,13 +33,6 @@ class VoxelizedDataset(Dataset):
         self.world_size = world_size # the number of data assigned to each gpu
         self.split = np.load(split_file) # addresses of train, test, eval data set
         self.data = self.split[mode] # mode = 'train', 'test', or 'eval'
-        # self.partition_index = partition_index # indices left for other dataset to partition
-        self.partition_index = partition_index # indices for self partition
-        if world_size>1:
-            # if not rank and not len(partition_index):
-            #     self.partition_index = list(range(len(self.split[mode])))
-            # self.partition_idx(len(self.split[mode]))
-            self.data = self.data[self.partition_index]
         self.res = res
 
         self.num_sample_points = num_sample_points
@@ -88,7 +81,6 @@ class VoxelizedDataset(Dataset):
         return {'grid_coords':np.array(coords, dtype=np.float32),'occupancies': np.array(occupancies, dtype=np.float32),'points':np.array(points, dtype=np.float32), 'inputs': np.array(input, dtype=np.float32), 'path' : path}
 
     def get_loader(self, shuffle =True):
-
         return torch.utils.data.DataLoader(
                 self, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=shuffle,
                 worker_init_fn=self.worker_init_fn)
@@ -97,11 +89,13 @@ class VoxelizedDataset(Dataset):
         random_data = os.urandom(4)
         base_seed = int.from_bytes(random_data, byteorder="big")
         np.random.seed(base_seed + worker_id)
-
-    def partition_idx(self, data_len):
-        part_len = int(data_len / self.world_size)
-        self.data = self.data[self.partition_index[0:part_len]]
-        self.partition_index = self.partition_index[part_len:]
+    
+    def random_split(self, partition_index):
+        self.data = self.data[partition_index]
+#    def partition_idx(self, data_len):
+#        part_len = int(data_len / self.world_size)
+#        self.data = self.data[self.partition_index[0:part_len]]
+#        self.partition_index = self.partition_index[part_len:]
         
         
         

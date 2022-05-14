@@ -80,37 +80,21 @@ class Trainer(object):
             train_data_loader = self.train_dataset.get_loader()
 
             if epoch % 1 == 0:
-                if self.parallel :
-                    if not self.rank:
-                        self.save_checkpoint(epoch)
-                    dist.barrier()
-                    val_loss = self.compute_val_loss()
-                    if not self.rank:
-                        #dist.send(tensor=torch.Tensor(val_loss), dst=1)
-                        for rank in range(1,self.world_size):
-                            val_loss_from_others = torch.zeros(1)
-                            dist.recv(tensor=val_loss_from_others, src=rank)
-                            val_loss += val_loss_from_others.item()
-                        val_loss = val_loss/self.world_size
-                    else:
-                        dist.send(tensor=torch.Tensor([val_loss]), dst=0)
-                    dist.barrier()
-                    if not self.rank:
-                        if self.val_min is None:
-                            self.val_min = val_loss
-
-                        if val_loss < self.val_min:
-                            self.val_min = val_loss
-                            for path in glob(self.exp_path + 'val_min=*'):
-                                os.remove(path)
-                            np.save(self.exp_path + 'val_min={}'.format(epoch),[epoch,val_loss])
-
-
-                            self.writer.add_scalar('val loss batch avg', val_loss, epoch)
-                else:
+                if not self.rank:
                     self.save_checkpoint(epoch)
-                    val_loss = self.compute_val_loss()
-
+                dist.barrier()
+                val_loss = self.compute_val_loss()
+                if not self.rank:
+                    #dist.send(tensor=torch.Tensor(val_loss), dst=1)
+                    for rank in range(1,self.world_size):
+                        val_loss_from_others = torch.zeros(1)
+                        dist.recv(tensor=val_loss_from_others, src=rank)
+                        val_loss += val_loss_from_others.item()
+                    val_loss = val_loss/self.world_size
+                else:
+                    dist.send(tensor=torch.Tensor([val_loss]), dst=0)
+                dist.barrier()
+                if not self.rank:
                     if self.val_min is None:
                         self.val_min = val_loss
 
@@ -126,26 +110,26 @@ class Trainer(object):
 
             for ib, batch in enumerate(train_data_loader):
                 loss = self.train_step(batch)
-                print("epoch: {}, batch: {}, Current loss: {}".format(epoch, ib, loss))
+                if not self.rank:
+                    print("epoch: {}, batch: {}, Current loss: {}".format(epoch, ib, loss))
                 sum_loss += loss
 
-            if self.parallel:
-                if not self.rank:
-                    #dist.send(tensor=torch.Tensor(val_loss), dst=1)
-                    for rank in range(1,self.world_size):
-                        train_loss_from_others = torch.zeros(1)
-                        dist.recv(tensor=train_loss_from_others, src=rank)
-                        sum_loss += train_loss_from_others.item()
-                    sum_loss = sum_loss/self.world_size
-                else:
-                    dist.send(tensor=torch.Tensor([sum_loss]), dst=0)
-                dist.barrier()
-                if not self.rank:
-                    self.writer.add_scalar('training loss last batch', loss, epoch)
-                    self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            if not self.rank:
+                #dist.send(tensor=torch.Tensor(val_loss), dst=1)
+                for rank in range(1,self.world_size):
+                    train_loss_from_others = torch.zeros(1)
+                    dist.recv(tensor=train_loss_from_others, src=rank)
+                    sum_loss += train_loss_from_others.item()
+                sum_loss = sum_loss/self.world_size
             else:
+                dist.send(tensor=torch.Tensor([sum_loss]), dst=0)
+            dist.barrier()
+            if not self.rank:
                 self.writer.add_scalar('training loss last batch', loss, epoch)
                 self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
+            # else:
+            #     self.writer.add_scalar('training loss last batch', loss, epoch)
+            #     self.writer.add_scalar('training loss batch avg', sum_loss / len(train_data_loader), epoch)
 
 
 

@@ -12,3 +12,4 @@ build/
 /data_processing/libvoxelize/build/
 *.tar
 lsf.*
+temp.txt

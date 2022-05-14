@@ -27,12 +27,13 @@ import tqdm
 def scale(path):
 
     if os.path.exists(path + '_scaled.off'):
+        print(f"exists {path}")
         return
 
     #try:
     input_file  = path + '.obj'
 
-    mesh = trimesh.load_mesh(input_file)
+    mesh = trimesh.load(input_file, force='mesh')
     total_size = (mesh.bounds[1] - mesh.bounds[0]).max()
     centers = (mesh.bounds[1] + mesh.bounds[0]) /2
 
@@ -42,7 +43,7 @@ def scale(path):
     mesh.export(path + '_scaled.off')
     #except:
     #    print('Error with {}'.format(path))
-    #print('Finished {}'.format(path))
+    print('Convert to scaled off finished {}'.format(path))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -75,7 +76,8 @@ if __name__ == '__main__':
             else:
                 current_mesh = load_mesh(file)
                 save_obj(fname + '.obj', current_mesh, save_texture=True)
-            p.apply_async(scale,(fname,))    
+            #p.apply_async(scale,(fname,))
+            scale(fname)
     else:
          for file in tqdm.tqdm(glob.glob(INPUT_PATH + '/*/*..npz'), desc = 'to_off'):
             #print(f"current file: {file}")

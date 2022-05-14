@@ -7,20 +7,20 @@ from glob import glob
 import numpy as np
 
 class Generator(object):
-    def __init__(self, model, threshold, exp_name, checkpoint = None, device = torch.device("cuda"), resolution = 16, batch_points = 1000000):
-        self.model = model.to(device)
+    def __init__(self, model, threshold, exp_name, checkpoint = None, device = torch.device("cuda"), resolution = 16, batch_points = 1000000, rank=0, world_size=0):
+        self.model = model
         self.model.eval()
         self.threshold = threshold
         self.device = device
         self.resolution = resolution
-        self.resolution = resolution
+        self.rank = rank
+        self.world_size = world_size
         self.checkpoint_path = os.path.dirname(__file__) + '/../experiments/{}/checkpoints/'.format( exp_name)
         self.load_checkpoint(checkpoint)
         self.batch_points = batch_points
 
         self.min = -0.5
         self.max = 0.5
-
 
         grid_points = iw.create_grid_points_from_bounds(self.min, self.max, self.resolution)
         grid_points[:, 0], grid_points[:, 2] = grid_points[:, 2], grid_points[:, 0].copy()
@@ -102,5 +102,5 @@ class Generator(object):
         else:
             path = self.checkpoint_path + 'checkpoint_epoch_{}.tar'.format(checkpoint)
         print('Loaded checkpoint from: {}'.format(path))
-        checkpoint = torch.load(path)
+        checkpoint = torch.load(path, map_location=f'cuda:{self.rank}')
         self.model.load_state_dict(checkpoint['model_state_dict'])

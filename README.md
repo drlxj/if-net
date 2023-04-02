@@ -1,6 +1,4 @@
 
-# 千萬不要動master！！！！！！！ 一定要記得在自己的brunch 操作！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-# 動master者， 天理不容！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
 # Implict Feature Networks
 > Implicit Functions in Feature Space for Shape Reconstruction and Completion <br />
 > [Julian Chibane](http://virtualhumans.mpi-inf.mpg.de/people/Chibane.html), [Thiemo Alldieck](http://virtualhumans.mpi-inf.mpg.de/people/alldieck.html), [Gerard Pons-Moll](http://virtualhumans.mpi-inf.mpg.de/people/pons-moll.html)
